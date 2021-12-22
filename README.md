@@ -185,7 +185,7 @@ metadata:
   name: mail-watcher-example-account
   namespace: mail-watcher-example-namespace
   annotations:
-    iam.gke.io/gcp-service-account: mail-watcher-example-account@second-capsule-253207.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: mail-watcher-example-account@your-project.iam.gserviceaccount.com
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -251,6 +251,8 @@ spec:
                     name: mail-watcher-example-configmap
                     key: SENDER
 ```
+
+You will need to have created the service *account mail-watcher-example-account*, with correct rights.
 
 You can specify when the cronjob should trigger in the **schedule** entry, you can use https://crontab.guru/ for help.
 
