@@ -167,7 +167,7 @@ kind: Kustomization
 bases:
   - ../base/mail_watcher_exampe
 images:
-  - name: eu.gcr.io/crested-acumen-297311/mail_watcher_exampe
+  - name: eu.gcr.io/your-project/mail_watcher_exampe
     newTag: latest
 ```
 
@@ -215,7 +215,7 @@ spec:
           serviceAccountName: mail-watcher-example-account
           containers:
           - name: mail-watcher-example
-            image: eu.gcr.io/crested-acumen-297311/mail-watcher-example:v1.0
+            image: eu.gcr.io/your-project/mail-watcher-example:v1.0
             imagePullPolicy: Always
             command: [ "/bin/sh","-c" ]
             args: [ "python main.py" ]
