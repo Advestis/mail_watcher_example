@@ -165,9 +165,9 @@ The content of *prod/kustomization.yaml* must then be
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 bases:
-  - ../base/mail_watcher_exampe
+  - ../base/mail_watcher_example
 images:
-  - name: eu.gcr.io/your-project/mail_watcher_exampe
+  - name: eu.gcr.io/your-project/mail_watcher_example
     newTag: latest
 ```
 
