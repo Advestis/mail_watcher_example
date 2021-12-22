@@ -6,7 +6,7 @@ To make such a watcher, there are two important parts :
 2. Making its docker image automatically when you update the watcher's code on GitHub
 3. Scheduling a cronjob using Flux-CD to run it on GCP's cluster with K8s at fixed hours
 
-I'll assume you know Python, Git and GitHub, are familiar with GCP's service accounts and have access to a working GCP cluster.
+I'll assume you know Python, Git and GitHub, are familiar with GCP's service accounts and already have some cronjob linked to GCP with an existing Flux-CD repository on GitHub.
 
 ## Coding the watcher
 
@@ -125,6 +125,133 @@ Where you need to have configured, in your profile's or your organization profil
 * **ORG_PROD_PROJECT**: the identifier of the GCP project your docker image must be sent to
 * **ORG_PYPI_PROD_CRED** : the content of the json credentials file corresponding to any service account having write access to Google Cloud Registry
 
+This yaml file will automatically create a docker image and push it to Google Cloud Registry every time you push on your master branch on GitHub.
+
 ## Making the cronjob
 
-Making the
+Making the cronjob is done use Flux-CD. You need a repository on GitHub with the following tree:
+
+```bash
+.
+├── base
+│   ├── some flux-cd directories
+│   └── mail_watcher_example
+│       ├── kustomization.yaml
+│       └── mail_watcher_example.yaml
+├── prod
+│   ├── flux-system
+│   │   ├── gotk-components.yaml
+│   │   ├── gotk-sync.yaml
+│   │   └── kustomization.yaml
+│   └── kustomization.yaml
+├── README.md
+
+```
+
+I'll suppose that the content of *prod/flux-system* is already parametrized correctly.
+
+The content of *base/mail_watcher_example/kustomization.yaml* must then be
+
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - mail_watcher_example.yaml
+```
+
+The content of *prod/kustomization.yaml* must then be
+
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+bases:
+  - ../base/mail_watcher_exampe
+images:
+  - name: eu.gcr.io/crested-acumen-297311/mail_watcher_exampe
+    newTag: latest
+```
+
+And finally the content of *base/mail_watcher_example/mail_watcher_example.yaml* should be something like
+
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mail-watcher-example-namespace
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mail-watcher-example-account
+  namespace: mail-watcher-example-namespace
+  annotations:
+    iam.gke.io/gcp-service-account: mail-watcher-example-account@second-capsule-253207.iam.gserviceaccount.com
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mail-watcher-example-configmap
+  namespace: mail-watcher-example-namespace
+data:
+  BUCKET: 'some_bucket'
+  MAIL_AUTOMAT: 'automat@mycorporation.com'
+  PASSWD_AUTOMAT: 'something'
+  ATTACHMENT_PATH: 'some_dir'
+  SUBJECT: 'My subject contains'
+  SENDER: 'bob.bib@bub.com'
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mail-watcher-example-cronjob
+  namespace: mail-watcher-example-namespace
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          shareProcessNamespace: true
+          serviceAccountName: mail-watcher-example-account
+          containers:
+          - name: mail-watcher-example
+            image: eu.gcr.io/crested-acumen-297311/mail-watcher-example:v1.0
+            imagePullPolicy: Always
+            command: [ "/bin/sh","-c" ]
+            args: [ "python main.py" ]
+            env:
+              - name: BUCKET
+                valueFrom:
+                  configMapKeyRef:
+                    name: mail-watcher-example-configmap
+                    key: BUCKET
+              - name: MAIL_AUTOMAT
+                valueFrom:
+                  configMapKeyRef:
+                    name: mail-watcher-example-configmap
+                    key: MAIL_AUTOMAT
+              - name: PASSWD_AUTOMAT
+                valueFrom:
+                  configMapKeyRef:
+                    name: mail-watcher-example-configmap
+                    key: PASSWD_AUTOMAT
+              - name: ATTACHMENT_PATH
+                valueFrom:
+                  configMapKeyRef:
+                    name: mail-watcher-example-configmap
+                    key: ATTACHMENT_PATH
+              - name: SUBJECT
+                valueFrom:
+                  configMapKeyRef:
+                    name: mail-watcher-example-configmap
+                    key: SUBJECT
+              - name: SENDER
+                valueFrom:
+                  configMapKeyRef:
+                    name: mail-watcher-example-configmap
+                    key: SENDER
+```
+
+You can specify when the cronjob should trigger in the **schedule** entry, you can use https://crontab.guru/ for help.
+
+If you Flux-CD repository is correctly linked to GCP, a simple push should schedule your cronjob !
