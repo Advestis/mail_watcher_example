@@ -1,0 +1,33 @@
+on:
+  push:
+    branches:
+      - master
+
+name: push
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ORG_TOKEN_CICD }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Set up Cloud SDK for GCR access
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.ORG_PROD_PROJECT}}
+          service_account_key: ${{ secrets.ORG_PYPI_PROD_CRED }}
+          export_default_credentials: true
+
+      - name: Use gcloud as a Docker credential helper
+        run: |
+          gcloud auth configure-docker
+          docker build -t eu.gcr.io/${{ secrets.ORG_PROD_PROJECT }}/mail_watcher_example:latest -f Dockerfile .
+          docker push eu.gcr.io/${{ secrets.ORG_PROD_PROJECT }}/mail_watcher_example:latest
