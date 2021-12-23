@@ -115,8 +115,8 @@ jobs:
       - name: Use gcloud as a Docker credential helper
         run: |
           gcloud auth configure-docker
-          docker build -t eu.gcr.io/${{ secrets.ORG_PROD_PROJECT }}/mail_watcher_example:latest -f Dockerfile .
-          docker push eu.gcr.io/${{ secrets.ORG_PROD_PROJECT }}/mail_watcher_example:latest
+          docker build -t eu.gcr.io/${{ secrets.ORG_PROD_PROJECT }}/mail-watcher-example:latest -f Dockerfile .
+          docker push eu.gcr.io/${{ secrets.ORG_PROD_PROJECT }}/mail-watcher-example:latest
 
 ```
 
@@ -167,7 +167,7 @@ kind: Kustomization
 bases:
   - ../base/mail_watcher_example
 images:
-  - name: eu.gcr.io/your-project/mail_watcher_example
+  - name: eu.gcr.io/your-project/mail-watcher-example
     newTag: latest
 ```
 
