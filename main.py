@@ -18,7 +18,7 @@ if __name__ == "__main__":
     logger.info(f"Fetching mail on {thedate.strftime('%Y-%m-%d')}...")
     mail.fetch_one_mail(
         save_dir=save_path,
-        d=thedate,
+        date=thedate,
         subject=os.environ["SUBJECT"],
         sender=os.environ["SENDER"],
         modes={"start": "exact", "end": "exact"},
