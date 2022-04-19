@@ -39,10 +39,10 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
 
-      - name: Set up Cloud SDK for GCR access
-        uses: google-github-actions/setup-gcloud@master
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
         with:
-          project_id: ${{ secrets.ORG_PROD_PROJECT}}
+          project_id: ${{ secrets.ORG_PROD_PROJECT }}
           service_account_key: ${{ secrets.ORG_CICD_GCP_CRED }}
           export_default_credentials: true
 
